@@ -7,8 +7,7 @@
 //============================================================================
 
 #include "readfile.h"
-#include <iostream>
-using namespace std;
+
 
 void insert(int key,int data);
 int deleteItem(int key);
