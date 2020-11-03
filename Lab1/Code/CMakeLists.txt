@@ -1,0 +1,1 @@
+add_executable (Lab1 readfile.cpp openAddressing.cpp main.cpp)
