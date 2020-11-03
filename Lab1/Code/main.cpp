@@ -7,6 +7,8 @@
 //============================================================================
 
 #include "readfile.h"
+#include <iostream>
+using namespace std;
 
 void insert(int key,int data);
 int deleteItem(int key);
@@ -45,6 +47,7 @@ int main(){
 //here we create a sample test to read and write to our database file
 
   //1. Create Database file or Open it if it already exists, check readfile.cpp
+   
    filehandle = createFile(FILESIZE,"openaddressing");
   //2. Display the database file, check openAddressing.cpp
    DisplayFile(filehandle);
