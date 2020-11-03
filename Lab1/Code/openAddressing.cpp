@@ -32,7 +32,37 @@ int hashCode(int key){
        the  file  descriptor  fd  at  offset  offset.
  */
 int insertItem(int fd,DataItem item){
-   //TODO: implement this function
+   struct DataItem data;
+   int count = 0;
+   int hashIndex = hashCode(item.key);
+   int startingOffset = hashIndex * sizeof(Bucket);
+   int offset = startingOffset;
+   int rewind = 0;
+   while(1)
+   {
+	    ssize_t result = pread(fd,&data,sizeof(DataItem),offset);
+	    count++;
+	    if(result <= 0)	//reading error
+			return -1;
+		if(data.valid == 0)	//empty position, insert data
+		{
+			item.valid = 1;
+			result = pwrite(fd,&item,sizeof(DataItem),offset);
+			if(result <= 0)	//writing error
+				return -1;
+			//written correctly;
+			return count;
+		}
+		//occupied position, move to next
+		offset += sizeof(DataItem);
+		if(offset >= FILESIZE && rewind == 0)	//rewind
+		{
+			offset = 0;
+			rewind = 1;
+		}
+		else if(offset >= startingOffset && rewind == 1)	//no empty places found
+			break;
+   }
    return 0;
 }
 
@@ -138,4 +168,5 @@ int deleteOffset(int fd, int Offset)
 	int result = pwrite(fd,&dummyItem,sizeof(DataItem), Offset);
 	return result;
 }
+
 
