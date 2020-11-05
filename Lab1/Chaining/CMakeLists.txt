@@ -3,4 +3,4 @@ file(GLOB LAB1_SRC
     "*.cpp"
 )
 
-add_executable (Lab1 ${LAB1_SRC})
+add_executable (chaining ${LAB1_SRC})
