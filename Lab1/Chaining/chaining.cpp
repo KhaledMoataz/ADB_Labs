@@ -126,9 +126,10 @@ int insertItem(int fd, DataItem item)
  * Output: the in the file where we found the item
  */
 
-int searchItem(int fd, struct DataItem *item, int *count)
+int searchItem(int fd, struct OverflowBucket *item, int *count, int *parent)
 {
     *count = 0;
+    *parent = -1;
     int hashIndex = hashCode(item->key);
     int offset = hashIndex * BUCKETSIZE;
     struct DataItem data;
@@ -145,6 +146,7 @@ int searchItem(int fd, struct DataItem *item, int *count)
         if (data.valid == 1 && data.key == item->key)
         {
             item->data = data.data;
+            item->nextOffset = -1;
             if (result <= 0) //writing error
                 return -1;
 
@@ -163,6 +165,7 @@ int searchItem(int fd, struct DataItem *item, int *count)
     while (overflowLocation > 0)
     {
         (*count)++;
+        *parent = offset;
         result = pread(fd, &overflowData, sizeof(OverflowBucket), overflowLocation);
         if (result <= 0) //either an error happened in the pread or it hit an unallocated space
         {                // perror("some error occurred in pread");
@@ -170,12 +173,14 @@ int searchItem(int fd, struct DataItem *item, int *count)
         }
         if (overflowData.valid == 1 && overflowData.key == item->key)
         {
-            item->data = data.data;
+            item->data = overflowData.data;
+            item->nextOffset = overflowData.nextOffset;
             if (result <= 0) //writing error
                 return -1;
 
             return overflowLocation;
         }
+        offset = overflowLocation + 3 * sizeof(int);
         overflowLocation = overflowData.nextOffset;
     }
     return -1;
@@ -262,8 +267,14 @@ int DisplayFile(int fd)
  *
  * Hint: you could only set the valid key and write just and integer instead of the whole record
  */
-int deleteOffset(int fd, int Offset)
+int deleteOffset(int fd, int Offset, int parent, int child)
 {
+    if (parent != -1)
+    {
+        ssize_t result = pwrite(fd, &child, sizeof(int), parent);
+        if (result <= 0) //writing error
+            return -1;
+    }
     struct DataItem dummyItem;
     dummyItem.valid = 0;
     int result = pwrite(fd, &dummyItem, sizeof(DataItem), Offset);

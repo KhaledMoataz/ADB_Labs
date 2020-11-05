@@ -1,12 +1,12 @@
 #include "readfile.h"
 
+
+#define a1 3
+#define b1 7
 /* Hash function to choose bucket
  * Input: key used to calculate the hash
  * Output: HashValue;
  */
-#define a1 3
-#define b1 7
-
 int hashCodeFirst(int key){
    return key % MBUCKETS;
 }
@@ -61,6 +61,22 @@ int insertItem(int fd,DataItem item){
 
             }
             else{
+				//Search Inside Bucket 
+				for(int i = 1 ; i<RECORDSPERBUCKET;i++){
+					Offset +=sizeof(DataItem);
+					count ++;
+					ssize_t result = pread(fd,&data,sizeof(DataItem), Offset);
+					if(result <= 0) {
+						return -1;
+					}
+					else if (data.valid == 0 ) 
+					{ 
+								pwrite(fd,&item,sizeof(DataItem), Offset);
+								return count;
+
+					}	
+				}
+				//Didnt Find empty space inside bucket so will do second hash 
                  hashIndex = hashCodeSecond(item.key,hashIndex);  				
 	             startingOffset = hashIndex*sizeof(Bucket);
             	 Offset = startingOffset;	
@@ -131,6 +147,20 @@ int searchItem(int fd,struct DataItem* item,int *count)
 
             }
             else{
+				for(int i = 1 ; i<RECORDSPERBUCKET;i++){
+					Offset +=sizeof(DataItem);
+					count ++;
+					ssize_t result = pread(fd,&data,sizeof(DataItem), Offset);
+					if(result <= 0) {
+						return -1;
+					}
+					else if (data.valid == 1 && data.key == item->key ) 
+					{ 
+								item->data = data.data ;
+								return Offset;
+
+					}	
+				}
 
                 secondHash = true;
                  hashIndex = hashCodeSecond(item->key,hashIndex);  				
@@ -190,4 +220,3 @@ int deleteOffset(int fd, int Offset)
 	int result = pwrite(fd,&dummyItem,sizeof(DataItem), Offset);
 	return result;
 }
-
