@@ -149,7 +149,7 @@ int searchItem(int fd,struct DataItem* item,int *count)
             else{
 				for(int i = 1 ; i<RECORDSPERBUCKET;i++){
 					Offset +=sizeof(DataItem);
-					count ++;
+					(*count)++;
 					ssize_t result = pread(fd,&data,sizeof(DataItem), Offset);
 					if(result <= 0) {
 						return -1;
