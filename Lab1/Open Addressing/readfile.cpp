@@ -8,7 +8,6 @@
  */
 int createFile(int size,char * name)
 {
-
     int fd;
 	int result;
     struct stat sb;
@@ -20,7 +19,6 @@ int createFile(int size,char * name)
 	perror("Error opening file for writing");
         return 1;
     }
-
     /* Stretch the file size.
      * Note that the bytes are not actually written,
      * and cause no IO activity.

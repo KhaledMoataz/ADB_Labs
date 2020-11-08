@@ -1,10 +1,3 @@
-/*
- * readfile.h
- *
- *  Created on: Sep 20, 2016
- *      Author: dina
- */
-
 #ifndef READFILE_H_
 #define READFILE_H_
 
