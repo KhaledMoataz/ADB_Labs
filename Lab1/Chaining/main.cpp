@@ -85,7 +85,8 @@ void insert(int key, int data)
    item.key = key;
    item.valid = 1;
    int result = insertItem(filehandle, item); //TODO: implement this function in openAddressing.cpp
-   printf("Insert: No. of searched records:%d\n", abs(result));
+   if (result < 1) printf("Insert: Error, Database is full\n");
+   else printf("Insert: No. of searched records:%d\n", abs(result));
 }
 
 /* Functionality: search for a data in the table using the key
@@ -125,5 +126,6 @@ int deleteItem(int key)
    {
       return deleteOffset(filehandle, Offset, parent, item->nextOffset);
    }
+   printf("Delete: Error, Item not found for Deletion\n");
    return -1;
 }

@@ -200,7 +200,7 @@ int DisplayFile(int fd)
     int offset = 0;
     int count = 0;
     ssize_t result;
-    printf("Main Buckets\n");
+    printf("*******Main Buckets*******\n");
 
     for (int numBucket = 0; numBucket < MBUCKETS; numBucket++)
     {
@@ -236,7 +236,7 @@ int DisplayFile(int fd)
     }
 
     struct OverflowBucket overflowData;
-    printf("Overflow Buckets\n");
+    printf("*******Overflow Buckets*******\n");
 
     for (int numOverflowBucket = 0; numOverflowBucket < NOVERFLOW_BUCKETS; numOverflowBucket++)
     {
@@ -257,6 +257,7 @@ int DisplayFile(int fd)
             count++;
         }
     }
+    printf("---------------------------------------\n");
     return count;
 }
 
