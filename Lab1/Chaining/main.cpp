@@ -7,6 +7,9 @@
 //============================================================================
 
 #include "readfile.h"
+#include <iostream>
+#include <fstream>
+using namespace std;
 
 void insert(int key, int data);
 int deleteItem(int key);
@@ -39,50 +42,33 @@ int filehandle; //handler for the database file
 
 */
 
-int main()
+int main(int argc, char *argv[])
 {
+   filehandle = createFile(FILESIZE, argv[2]);
 
-   //here we create a sample test to read and write to our database file
-
-   //1. Create Database file or Open it if it already exists, check readfile.cpp
-
-   filehandle = createFile(FILESIZE, "openaddressing");
-   //2. Display the database file, check openAddressing.cpp
-   DisplayFile(filehandle);
-
-   //3. Add some data in the table
-   insert(1, 20);
-   insert(2, 70);
-   insert(42, 80);
-   insert(4, 25);
-   insert(12, 44);
-   insert(14, 32);
-   insert(17, 11);
-   insert(13, 78);
-   insert(37, 97);
-   insert(11, 34);
-   insert(22, 730);
-   insert(46, 840);
-   insert(9, 83);
-   insert(21, 424);
-   insert(41, 115);
-   insert(71, 47);
-   insert(31, 92);
-   insert(73, 45);
-
-   //4. Display the database file again
-   DisplayFile(filehandle);
-
-   //5. Search the database
-   search(13);
-   search(31);
-   
-   //6. delete an item from the database
-   deleteItem(31);
-
-   //7. Display the final data base
-   DisplayFile(filehandle);
-   // And Finally don't forget to close the file.
+   ifstream myfile(argv[1]);
+   while (!myfile.eof())
+   {
+      int type, key, data;
+      myfile >> type;
+      switch (type)
+      {
+      case 1: // insert
+         myfile >> key >> data;
+         insert(key, data);
+         break;
+      case 2: // search
+         myfile >> key;
+         search(key);
+         break;
+      case 3: // delete
+         myfile >> key;
+         deleteItem(key);
+         break;
+      default:
+         DisplayFile(filehandle);
+      }
+   }
    close(filehandle);
    return 0;
 }
@@ -137,7 +123,7 @@ int deleteItem(int key)
    printf("Delete: No of records searched is %d\n", diff);
    if (Offset >= 0)
    {
-         return deleteOffset(filehandle, Offset, parent, item->nextOffset);
+      return deleteOffset(filehandle, Offset, parent, item->nextOffset);
    }
    return -1;
 }

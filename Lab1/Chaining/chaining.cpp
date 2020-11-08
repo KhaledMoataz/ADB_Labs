@@ -269,14 +269,22 @@ int DisplayFile(int fd)
  */
 int deleteOffset(int fd, int Offset, int parent, int child)
 {
+    int result;
     if (parent != -1)
     {
-        ssize_t result = pwrite(fd, &child, sizeof(int), parent);
+        result = pwrite(fd, &child, sizeof(int), parent);
         if (result <= 0) //writing error
             return -1;
+        struct OverflowBucket dummyItem;
+        dummyItem.valid = 0;
+        dummyItem.nextOffset = -1;
+        result = pwrite(fd, &dummyItem, sizeof(OverflowBucket), Offset);
     }
-    struct DataItem dummyItem;
-    dummyItem.valid = 0;
-    int result = pwrite(fd, &dummyItem, sizeof(DataItem), Offset);
+    else
+    {
+        struct DataItem dummyItem;
+        dummyItem.valid = 0;
+        result = pwrite(fd, &dummyItem, sizeof(DataItem), Offset);
+    }
     return result;
 }
