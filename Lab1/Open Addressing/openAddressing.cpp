@@ -66,7 +66,7 @@ int insertItem(int fd,DataItem item){
 		}
 		else if(offset >= startingOffset && rewind == 1)	//no empty places found
 		{
-			perror("No empty space for record - Insert function\n");
+			printf("No empty space for record - Insert function\n");
 			break;
 		}
    }
@@ -120,7 +120,6 @@ int searchItem(int fd,struct DataItem* item,int *count)
 			Offset = 0;
 			goto RESEEK;
 		} else if(rewind == 1 && Offset >= startingOffset) {
-			perror("Record not found\n");
 			return -1; //no empty spaces
 		}
 		goto RESEEK;

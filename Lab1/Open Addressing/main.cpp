@@ -94,7 +94,7 @@ struct DataItem * search(int key)
    item->key = key;
    int diff = 0;
    int Offset= searchItem(filehandle,item,&diff); //this function is implemented for you in openAddressing.cpp
-   printf("Search: No of records searched is %d\n",diff);
+   printf("Search: No. of records searched is %d\n",diff);
    if(Offset < 0)  //If offset is negative then the key doesn't exists in the table
       printf("Item not found\n");
    else
