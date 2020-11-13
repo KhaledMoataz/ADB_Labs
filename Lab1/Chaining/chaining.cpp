@@ -154,6 +154,8 @@ int searchItem(int fd, struct OverflowBucket *item, int *count, int *parent)
         {
             item->data = data.data;
             item->nextOffset = -1;
+            int firstOverflowOffset = hashIndex * BUCKETSIZE + RECORDSIZE * RECORDSPERBUCKET;
+            result = pread(fd, &item->nextOffset, sizeof(int), firstOverflowOffset);
             if (result <= 0) //writing error
                 return -1;
 
@@ -290,9 +292,39 @@ int deleteOffset(int fd, int Offset, int parent, int child)
     }
     else
     {
-        struct DataItem dummyItem;
-        dummyItem.valid = 0;
-        result = pwrite(fd, &dummyItem, sizeof(DataItem), Offset);
+        struct DataItem item;
+        item.valid = 0;
+        if (child > 0)
+        {
+            OverflowBucket overflowData;
+            result = pread(fd, &overflowData, sizeof(OverflowBucket), child);
+            if (result < 0)
+            {
+                perror("some error occurred in pread");
+                return -1;
+            }
+
+            item.valid = 1;
+            item.data = overflowData.data;
+            item.key = overflowData.key;
+
+            int next = overflowData.nextOffset;
+
+            overflowData.valid = 0;
+            overflowData.nextOffset = -1;
+            
+            // Delete Overflow Bucket
+            result = pwrite(fd, &overflowData, sizeof(OverflowBucket), child);
+            if (result <= 0) //writing error
+                return -1;
+
+            // Modify the overflowBucketOffset of the main bucket
+            int firstOverflowOffset = hashCode(item.key) * BUCKETSIZE + RECORDSIZE * RECORDSPERBUCKET;
+            result = pwrite(fd, &next, sizeof(int), firstOverflowOffset);
+            if (result <= 0) //writing error
+                return -1;
+        }
+        result = pwrite(fd, &item, sizeof(DataItem), Offset);
     }
     return result;
 }
