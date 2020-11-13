@@ -1,5 +1,5 @@
 #include "readfile.h"
-
+#include <set>
 /* Hash function to choose bucket
  * Input: key used to calculate the hash
  * Output: HashValue;
@@ -65,10 +65,36 @@ int insertItem(int fd, DataItem item)
     overflowItem.key = item.key;
     overflowItem.nextOffset = -1;
 
+    int overflowLocation;
+    result = pread(fd, &overflowLocation, sizeof(int), offset);
+    if (result <= 0) //either an error happened in the pread or it hit an unallocated space
+    {                // perror("some error occurred in pread");
+        return -1;
+    }
+
+    std::set<int> visitedLocations;
+    while (overflowLocation > 0)
+    {
+        count++;
+        visitedLocations.insert(overflowLocation);
+        offset = overflowLocation + 3 * sizeof(int);
+        result = pread(fd, &overflowData, sizeof(OverflowBucket), overflowLocation);
+        if (result <= 0) //either an error happened in the pread or it hit an unallocated space
+        {                // perror("some error occurred in pread");
+            return -1;
+        }
+        overflowLocation = overflowData.nextOffset;
+    }
+
     int freeOffset = -1;
     for (int numOverflowBucket = 0; numOverflowBucket < NOVERFLOW_BUCKETS; numOverflowBucket++)
     {
         int auxOffset = MBUCKETS * BUCKETSIZE + numOverflowBucket * OVERFLOW_BUCKETSIZE;
+        if (visitedLocations.count(auxOffset))
+        {
+            continue;
+        }
+        count++;
         result = pread(fd, &overflowData, sizeof(OverflowBucket), auxOffset);
         if (result < 0)
         {
@@ -88,29 +114,10 @@ int insertItem(int fd, DataItem item)
     if (freeOffset == -1)
         return -1;
 
-    int overflowLocation;
-    result = pread(fd, &overflowLocation, sizeof(int), offset);
-    if (result <= 0) //either an error happened in the pread or it hit an unallocated space
-    {                // perror("some error occurred in pread");
-        return -1;
-    }
-
-    while (overflowLocation > 0)
-    {
-        count++;
-        offset = overflowLocation + 3 * sizeof(int);
-        result = pread(fd, &overflowData, sizeof(OverflowBucket), overflowLocation);
-        if (result <= 0) //either an error happened in the pread or it hit an unallocated space
-        {                // perror("some error occurred in pread");
-            return -1;
-        }
-        overflowLocation = overflowData.nextOffset;
-    }
-
     result = pwrite(fd, &freeOffset, sizeof(int), offset);
     if (result <= 0) //writing error
         return -1;
-    return count + 1;
+    return count;
 }
 
 /* Functionality: using a key, it searches for the data item
