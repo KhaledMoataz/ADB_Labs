@@ -5,9 +5,8 @@
  * Output: HashValue;
  */
 int hashCode(int key){
-   return key % MBUCKETS;
+   return (key % MBUCKETS + MBUCKETS)%MBUCKETS;
 }
-
 
 /* Functionality insert the data item into the correct position
  *          1. use the hash function to determine which bucket to insert into
@@ -43,13 +42,18 @@ int insertItem(int fd,DataItem item){
 	    ssize_t result = pread(fd,&data,sizeof(DataItem),offset);
 	    count++;
 	    if(result <= 0)	//reading error
+		{
+			perror("some error occurred in pread - Insert function\n");
 			return -1;
+		}
 		if(data.valid == 0)	//empty position, insert data
 		{
-			item.valid = 1;
 			result = pwrite(fd,&item,sizeof(DataItem),offset);
 			if(result <= 0)	//writing error
+			{
+				perror("some error occurred in pwrite - Insert function\n");
 				return -1;
+			}
 			//written correctly;
 			return count;
 		}
@@ -61,7 +65,10 @@ int insertItem(int fd,DataItem item){
 			rewind = 1;
 		}
 		else if(offset >= startingOffset && rewind == 1)	//no empty places found
+		{
+			printf("No empty space for record - Insert function\n");
 			break;
+		}
    }
    return 0;
 }
@@ -79,10 +86,8 @@ int insertItem(int fd,DataItem item){
  *
  * Output: the in the file where we found the item
  */
-
 int searchItem(int fd,struct DataItem* item,int *count)
 {
-
 	//Definitions
 	struct DataItem data;   //a variable to read in it the records from the db
 	*count = 0;				//No of accessed records
@@ -99,29 +104,27 @@ int searchItem(int fd,struct DataItem* item,int *count)
 	(*count)++;
 	//check whether it is a valid record or not
     if(result <= 0) //either an error happened in the pread or it hit an unallocated space
-	{ 	 // perror("some error occurred in pread");
-		  return -1;
+	{ 	 
+		perror("some error occurred in pread - Search function\n");
+		return -1;
     }
     else if (data.valid == 1 && data.key == item->key) {
     	//I found the needed record
-    			item->data = data.data ;
-    			return Offset;
-
+		item->data = data.data ;
+		return Offset;
     } else { //not the record I am looking for
-    		Offset +=sizeof(DataItem);  //move the offset to next record
-    		if(Offset >= FILESIZE && rewind ==0 )
-    		 { //if reached end of the file start again
-    				rewind = 1;
-    				Offset = 0;
-    				goto RESEEK;
-    	     } else
-    	    	  if(rewind == 1 && Offset >= startingOffset) {
-    				return -1; //no empty spaces
-    	     }
-    		goto RESEEK;
+		Offset +=sizeof(DataItem);  //move the offset to next record
+		if(Offset >= FILESIZE && rewind ==0)
+		{ //if reached end of the file start again
+			rewind = 1;
+			Offset = 0;
+			goto RESEEK;
+		} else if(rewind == 1 && Offset >= startingOffset) {
+			return -1; //no empty spaces
+		}
+		goto RESEEK;
     }
 }
-
 
 /* Functionality: Display all the file contents
  *
@@ -145,7 +148,7 @@ int DisplayFile(int fd){
 		} else {
 			pread(fd,&data,sizeof(DataItem), Offset);
 			printf("Bucket: %d, Offset: %d, Data: %d, key: %d\n",Offset/BUCKETSIZE,Offset,data.data,data.key);
-					 count++;
+			count++;
 		}
 	}
 	return count;
